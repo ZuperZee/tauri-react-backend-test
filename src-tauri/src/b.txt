@@ -1,0 +1,28 @@
+use rocket::{get, http::Method, routes};
+use rocket_cors::{AllowedHeaders, AllowedOrigins};
+
+#[get("/")]
+fn index() -> &'static str {
+  "Hello there. This is a server response :D"
+}
+
+pub fn main() {
+  let allowed_origins = AllowedOrigins::All;
+
+  // You can also deserialize this
+  let cors = rocket_cors::CorsOptions {
+    allowed_origins,
+    allowed_methods: vec![Method::Get].into_iter().map(From::from).collect(),
+    allowed_headers: AllowedHeaders::some(&["Authorization", "Accept", "Origin"]),
+    allow_credentials: true,
+    ..Default::default()
+  }
+  .to_cors()
+  // panic if there was an error
+  .expect("error creating CORS fairing");
+
+  rocket::ignite()
+    .mount("/", routes![index])
+    .attach(cors)
+    .launch();
+}
